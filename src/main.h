@@ -49,12 +49,15 @@ public:
     }
 
     Pump** pumps;
+    Valve** valves;
+    Zone** zones;
+    Sensor** sensors;
 
 // boot section
 void setup();
 void loop();
 void reset();
-};
+}waterIO;
 
 /*
  Any identification numbers of objects shall only change during boot or when 
@@ -102,12 +105,16 @@ public:
 };
 
 // zones have no hardware
+// a zone is an area where water should be applied
+// optimally, a zone should only represent one plant pot or basket 
 class Zone {
 public:
-    uint8_t id;
-    Valve* valve;
-    Sensor** sensors;
+    Valve* valve;   // parent valve node
+    Sensor** sensors; // children sensor nodes
+    uint8_t id; //
 
+    uint16_t checkInterval;
+    uint8_t threshold;
     uint8_t humidity;
 
 void init();
@@ -117,13 +124,12 @@ void getHumidity();
 // sensors for measuring humidity in one or multiple zones
 class Sensor {
 public:
-    uint8_t id;
-    uint8_t pin;
-
-    Zone* zone;
+    Zone* zone; // zone dependency
+    uint8_t id; // unique identification number
+    uint8_t pin; // hardware pin
 
     uint8_t humidity;
-    double calibrationConstant;
+    float calibrationConstant;
 
 void init();
 void getHumidity();

@@ -13,8 +13,14 @@ void setup() {
   valve2.activeLevel = HIGH_ACTIVE;
 
   Zone zone1, zone2;
+  zone1.checkInterval = 60;
+  zone1.threshold = 25;
+  zone2.checkInterval = 60;
+  zone2.threshold = 25;
 
   Sensor sensor1, sensor2;
+  sensor1.pin = 4;
+  sensor2.pin = 5;
 
 // pointer references
 // children
@@ -42,11 +48,29 @@ void setup() {
   sensor2.zone = &zone2;
 
 // initilization
-uint8_t arrayLength = (sizeof(*waterIO.pumps)/sizeof(**waterIO.pumps)) + 1;
-for(uint8_t i = 0; i < arrayLength; i++) {
-  waterIO.pumps[i];
+uint8_t arrayLength = (sizeof(*waterIO.pumps)/sizeof(**waterIO.pumps));
+Pump temp;
+for(uint8_t i = 1; i < arrayLength; i++) {
+  temp = *waterIO.pumps[i - 1];
+  temp.init();
 }
+delete &temp;
 
+arrayLength = (sizeof(*waterIO.valves)/sizeof(**waterIO.valves));
+Valve temp;
+for(uint8_t i = 1; i < arrayLength; i++) {
+  temp = *waterIO.valves[i - 1];
+  temp.init();
+}
+delete &temp;
+
+arrayLength = (sizeof(*waterIO.sensors)/sizeof(**waterIO.sensors));
+Sensor temp;
+for(uint8_t i = 1; i < arrayLength; i++) {
+  temp = *waterIO.sensors[i - 1];
+  temp.calibration();
+}
+delete &temp;
 
 }
 
@@ -91,7 +115,7 @@ void Sensor::calibration() {
   // sensor submerged in water (100%)
   uint8_t wet = (analogRead(pin) / 1024);
 
-  if(dry == wet){} // print error
+  if(dry == wet){} // error
 
   // linear approximation of humidity curve
   calibrationConstant = 255 / (wet - dry);

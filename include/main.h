@@ -3,15 +3,6 @@
 #include <Arduino.h>
 #include <stdint.h>
 
-#define __AVR_ATmega328P__
-
-#ifdef __AVR_ATmega328P__
-    #define AREF 5
-#endif
-#ifdef ESP32
-    #define AREF 3.33f
-#endif
-
 // GPIO defines
 #define RELAY_1 1
 #define RELAY_2 2
@@ -39,15 +30,32 @@
 #define SET_BIT(x, y)   (y |= x)
 #define RESET_BIT(x, y) (y &= ~x)
 
+/*
+ Any identification numbers of objects shall only change during boot or when 
+ changing the settings
+*/
+
+class WaterIO;
+class OnOffDevice;
+class Sensor;
+class Zone;
+class Valve;
+class Pump;
+class Reservoir;
+
+template<typename T>
+uint16_t arrayLength(T**);
+
 // waterIO class
 class WaterIO {
 public:
-    WaterIO();
-    static WaterIO& instance() {
-        static WaterIO instance;
-        return instance;
-    }
+    // WaterIO();
+    // static WaterIO& instance() {
+    //     static WaterIO instance;
+    //     return instance;
+    // }
 
+    Reservoir** reservoir;
     Pump** pumps;
     Valve** valves;
     Zone** zones;
@@ -59,19 +67,9 @@ void loop();
 void reset();
 }waterIO;
 
-/*
- Any identification numbers of objects shall only change during boot or when 
- changing the settings
-*/
-
 enum deviceFlags: uint8_t {
     IS_ACTIVE = (uint8_t) (1 << 0),
     RESERVED = (uint8_t) (1 << 1),
-    RESERVED = (uint8_t) (1 << 2),
-    RESERVED = (uint8_t) (1 << 3),
-    RESERVED = (uint8_t) (1 << 4),
-    RESERVED = (uint8_t) (1 << 5),
-    RESERVED = (uint8_t) (1 << 6),
     BYPASS_VALVE = (uint8_t) (1 << 7)
 };
 
@@ -87,11 +85,18 @@ void activate();
 void deactivate();
 };
 
+class Reservoir {
+public:
+    Pump** pumps;
+    uint8_t sensorPin;
+    uint8_t isEmpty;
+};
+
 // pumps
 class Pump: public OnOffDevice {
 public:
+    Reservoir* reservoir;
     Valve** valves;
-    Zone** zones; // in case a pump is connected directly to one ore multiple zones
     float flow;
 
 };
@@ -106,32 +111,33 @@ public:
 
 // zones have no hardware
 // a zone is an area where water should be applied
-// optimally, a zone should only represent one plant pot or basket 
+// optimally, a zone should only represent one plant, pot or basket 
 class Zone {
 public:
-    Valve* valve;   // parent valve node
-    Sensor** sensors; // children sensor nodes
-    uint8_t id; //
+    Valve* valve;       // parent valve node
+    Sensor** sensors;   // children sensor nodes
+    uint8_t id;         // unique identification number
 
-    uint16_t checkInterval;
+    uint32_t checkInterval; // in milliseconds
+    float waterOnTime;
     uint8_t threshold;
-    uint8_t humidity;
 
 void init();
-void getHumidity();
+uint8_t getHumidity();
+void startWater();
+void stopWater();
 };
 
 // sensors for measuring humidity in one or multiple zones
 class Sensor {
 public:
-    Zone* zone; // zone dependency
-    uint8_t id; // unique identification number
-    uint8_t pin; // hardware pin
+    Zone* zone;     // zone dependency
+    uint8_t id;     // unique identification number
+    uint8_t pin;    // hardware pin
 
-    uint8_t humidity;
     float calibrationConstant;
 
 void init();
-void getHumidity();
+uint8_t getHumidity();
 void calibration();
 };

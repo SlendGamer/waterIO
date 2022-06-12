@@ -1,6 +1,6 @@
 # Automatic Web-based Plant Watering System
 
-**WaterIO** is a small private project to enable automatic watering of plants based on soil humidity. 
+**WaterIO** is a small project to enable automatic watering of plants based on soil humidity. 
 
 ## Schematic
 
@@ -11,8 +11,8 @@ The graph is a spanning tree and may not be cyclic so that on child-element alwa
 ```mermaid
 graph TB
   
-  App[Application] --> P1[Pump1];
-  App --> P2[Pump2];
+  App[Application] --> P1[Pump 1];
+  App --> P2[Pump 2];
   App --> PX[...];
 
   P1 --> V1[Valve 1];
@@ -27,3 +27,9 @@ graph TB
   Z1 --> Sen2[Sensor 2];
   Z1 --> SenX[...];
 ```
+
+## TODO
+
+- pin manager
+- hardware I2C support
+- water reservoir runout
